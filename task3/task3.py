@@ -1,3 +1,4 @@
+import sys
 import json
 
 def f(tests, values):
@@ -9,19 +10,31 @@ def f(tests, values):
         if 'values' in test and type(test['values']) == list:
             f(test['values'], values)
 
-file1, file2, file3 = input('Название файла: '), input('Название файла: '), input('Название файла: ')
+file1, file2, file3 = sys.argv[1], sys.argv[2], sys.argv[3]
 
-with open(file1, 'r') as f1, open(file2, 'r') as f2, open(file3, 'w') as f3:
-    
-    test = json.load(f1)
-    value = json.load(f2)
-    
-    values = {}
-    for item in value.get('values', []):
-        if 'id' in item and 'value' in item:
-            values[item['id']] = item['value']
-    
-    if 'tests' in test and type(test['tests']) == list:
-        f(test['tests'], values)
-    
-    json.dump(test, f3)
+try:
+    with open(file1, 'r') as f1, open(file2, 'r') as f2, open(file3, 'w') as f3:
+        
+        try:
+            test = json.load(f1)
+            value = json.load(f2)
+        except json.JSONDecodeError:
+            raise StopIteration
+        
+        values = {}
+        for item in value.get('values', []):
+            if 'id' in item and 'value' in item:
+                values[item['id']] = item['value']
+        
+        if 'tests' in test and type(test['tests']) == list:
+            f(test['tests'], values)
+        
+        try:
+            json.dump(test, f3)
+        except json.JSONDecodeError:
+            raise StopIteration
+            
+except OSError:
+    print("Ошибка при чтении файла")
+except StopIteration:
+    print('Некорректный формат файла')
